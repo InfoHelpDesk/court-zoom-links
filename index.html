@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OCJ Court Connect</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Animate.css -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+  <!-- AOS -->
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css"/>
+
+  <style>
+    img.grayscale { filter: grayscale(100%); }
+        .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+  </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+ <!-- Language Switch Button - smaller, no margin, attached to header -->
+<div class="bg-white shadow w-full flex justify-end px-4 py-1">
+  <button id="langToggle" onclick="toggleLanguage()" class="bg-blue-900 text-white px-2 py-1 text-sm rounded shadow">Français</button>
+</div>
+
+<!-- Header with icon and updated text, no spacing wasted -->
+<header class="bg-white shadow sticky top-0 z-40" role="banner">
+  <div class="max-w-7xl mx-auto flex justify-between items-center px-4 py-2">
+    <img src="ocjlogo.png" alt="Ontario Court Logo" class="h-16 grayscale animate__animated animate__fadeInDown">
+    <div class="text-right">
+      <h2 id="headerTitle" class="text-gray-700 text-2xl font-semibold">Ontario Court of Justice - Toronto</h2>
+      <h1 id="headerSubtitle" class="text-blue-900 text-3xl font-bold">Court Connect</h1>
+    </div>
+  </div>
+</header>
+
+<main role="main">
+  <!-- Instruction paragraph in the middle -->
+  <section class="bg-gray-100 min-h-screen pb-20 text-center animate__animated animate__fadeInUp">
+    <p id="instructionText" class="mb-6 text-gray-700 text-lg max-w-xl mx-auto pt-10">Use the search tools below to find the zoom information for a location of the Ontario Court of Justice</p>
+
+    <div class="inline-block bg-white p-8 rounded-lg shadow-md w-full max-w-xl" data-aos="zoom-in" aria-labelledby="findCourtroomTitle">
+      <h3 id="findCourtroomTitle" class="text-xl font-semibold mb-4">Find Your Courtroom</h3>
+      <select id="courtroomSelect" class="border border-gray-300 rounded px-4 py-2 mb-4 w-full" aria-label="Select courtroom">
+        <option>Select a courtroom</option>
+      </select>
+      <br>
+      <button id="submitButton" onclick="showCourtroomInfo()" class="mt-4 bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700">Submit</button>
+      <p id="errorMsg" class="text-red-600 mt-4 hidden" aria-live="assertive">You must select a courtroom before submitting!</p>
+    </div>
+
+    <!-- Courtroom Info Popup only shows copy buttons after choosing -->
+    <section id="courtroomInfo" class="max-w-md mx-auto my-8 bg-white rounded-lg shadow p-6 text-left hidden animate__animated animate__fadeIn" aria-live="polite"></section>
+    <!-- Download Zoom File-->
+   <a href="court-zoom-links.pdf" target="_blank" class="sr-only" >Download PDF Format</a>
+  </section>
+</main>
+  <!-- Script JS -->
+ <script>
+    const courtrooms = [
+  { number: "201", function: "Case Management Court", times: "9:00 AM, 11:00 AM, 2:00 PM", meetingID: "641 1772 5477", passcode: "632860" },
+  { number: "202", function: "Case Management Court", times: "9:00 AM, 11:00 AM, 2:00 PM", meetingID: "628 7742 9247", passcode: "086329" },
+  { number: "203", function: "Case Management Court", times: "9:00 AM, 11:00 AM, 1:00 PM, 2:00 PM", meetingID: "640 5558 9354", passcode: "537401" },
+  { number: "204", function: "Case Management Court", times: "9:00 AM, 11:00 AM, 2:00 PM", meetingID: "652 0551 1991", passcode: "380199" },
+  { number: "205", function: "Case Management Court", times: "9:00 AM, 11:00 AM, 2:00 PM", meetingID: "687 3561 8593", passcode: "727196" },
+  { number: "501", function: "Trial", times: "10:00 AM", meetingID: "658 4441 7761", passcode: "691359" },
+  { number: "701", function: "Trial", times: "10:00 AM", meetingID: "624 6221 4203", passcode: "618586" },
+  { number: "702", function: "Trial", times: "10:00 AM", meetingID: "632 9008 8971", passcode: "903308" },
+  { number: "703", function: "Trial", times: "10:00 AM", meetingID: "610 6162 8390", passcode: "298014" },
+  { number: "704", function: "Trial", times: "10:00 AM", meetingID: "613 0205 2402", passcode: "483447" },
+  { number: "705", function: "Trial", times: "10:00 AM", meetingID: "621 9712 2746", passcode: "215571" },
+  { number: "706", function: "Judicial Pre-Trial", times: "10:00 AM", meetingID: "644 4957 9791", passcode: "435892" },
+  { number: "707", function: "Judicial Pre-Trial", times: "10:00 AM", meetingID: "643 4205 3293", passcode: "004822" },
+  { number: "801", function: "Plea", times: "10:00 AM", meetingID: "635 4759 6988", passcode: "160132" },
+  { number: "802", function: "Trial", times: "10:00 AM", meetingID: "629 4117 9316", passcode: "822723" },
+  { number: "803", function: "Trial", times: "10:00 AM", meetingID: "629 9642 3837", passcode: "640375" },
+  { number: "804", function: "Plea", times: "10:00 AM", meetingID: "670 2891 3432", passcode: "010168" },
+  { number: "805", function: "Trial", times: "10:00 AM", meetingID: "660 1064 9586", passcode: "479091" },
+  { number: "806", function: "Mental Health Court", times: "10:00 AM", meetingID: "620 3065 5192", passcode: "038484" },
+  { number: "807", function: "Intensive-Case Management", times: "10:00 AM", meetingID: "612 9792 7790", passcode: "672163" },
+  { number: "901", function: "Plea", times: "10:00 AM", meetingID: "654 3077 2491", passcode: "239738" },
+  { number: "902", function: "Trial", times: "10:00 AM", meetingID: "624 4180 6055", passcode: "959150" },
+  { number: "904", function: "Drug Treatment Court", times: "10:00 AM", meetingID: "648 8074 5881", passcode: "243143" },
+  { number: "906", function: "Trial", times: "10:00 AM", meetingID: "618 8733 6786", passcode: "801600" },
+  { number: "907", function: "Gladue Court", times: "10:00 AM", meetingID: "668 6910 8875", passcode: "060048" },
+  { number: "908", function: "Gladue Court", times: "10:00 AM", meetingID: "686 6500 9851", passcode: "332459" },
+  { number: "1001", function: "Federal Case Management", times: "9:00 AM, 11:00 AM", meetingID: "660 4638 5889", passcode: "579060" },
+  { number: "1002", function: "Trial", times: "10:00 AM", meetingID: "621 7347 2887", passcode: "531943" },
+  { number: "1003", function: "Trial", times: "10:00 AM", meetingID: "617 9655 3031", passcode: "624499" },
+  { number: "1004", function: "Plea", times: "10:00 AM", meetingID: "641 3389 8872", passcode: "507613" },
+  { number: "1005", function: "Trial", times: "10:00 AM", meetingID: "679 9131 4033", passcode: "309855" },
+  { number: "1006", function: "Trial", times: "10:00 AM", meetingID: "642 6144 0848", passcode: "069929" },
+  { number: "1007", function: "Trial", times: "10:00 AM", meetingID: "666 5672 1620", passcode: "378649" },
+  { number: "1101", function: "Plea", times: "10:00 AM", meetingID: "615 3244 8546", passcode: "823096" },
+  { number: "1102", function: "Trial", times: "10:00 AM", meetingID: "611 2624 3073", passcode: "896160" },
+  { number: "1103", function: "Bail Assist & Special Hearing", times: "10:00 AM", meetingID: "679 6636 0084", passcode: "606052" },
+  { number: "1104", function: "Trial", times: "10:00 AM", meetingID: "650 2340 1752", passcode: "805666" },
+  { number: "1105", function: "Trial", times: "10:00 AM", meetingID: "623 7618 4679", passcode: "443717" },
+  { number: "1106", function: "Trial", times: "10:00 AM", meetingID: "687 3983 9004", passcode: "501657" },
+  { number: "1107", function: "Trial", times: "10:00 AM", meetingID: "687 7603 2401", passcode: "791456" },
+  { number: "1201", function: "Trial", times: "10:00 AM", meetingID: "628 3397 0447", passcode: "865959" },
+  { number: "1202", function: "Trial", times: "10:00 AM", meetingID: "684 6158 3959", passcode: "977487" },
+  { number: "1205", function: "Trial", times: "10:00 AM", meetingID: "633 9696 2650", passcode: "825570" },
+  { number: "1206", function: "Trial", times: "10:00 AM", meetingID: "663 6758 9285", passcode: "936484" },
+  { number: "1207", function: "Trial", times: "10:00 AM", meetingID: "687 4483 1556", passcode: "511201" },
+  { number: "1301", function: "Trial", times: "10:00 AM", meetingID: "692 9895 6828", passcode: "568105" },
+  { number: "1302", function: "Trial", times: "10:00 AM", meetingID: "697 5211 8043", passcode: "530868" },
+  { number: "1303", function: "Trial Readiness & Self Rep JPT", times: "9:00 AM", meetingID: "687 4826 5459", passcode: "452464" },
+  { number: "1304", function: "Case Conference", times: "N/A", meetingID: "668 6071 5966", passcode: "356780" },
+  { number: "1305", function: "Trial", times: "10:00 AM", meetingID: "657 5664 0120", passcode: "470778" },
+  { number: "1306", function: "Trial", times: "10:00 AM", meetingID: "674 0484 0641", passcode: "373258" },
+  { number: "1307", function: "Trial", times: "10:00 AM", meetingID: "672 8730 7445", passcode: "515747" },
+  { number: "1401", function: "Trial", times: "10:00 AM", meetingID: "669 4991 1402", passcode: "569325" },
+  { number: "1402", function: "Trial", times: "10:00 AM, 1:15 PM", meetingID: "621 1418 7523", passcode: "410272" },
+  { number: "1404", function: "Trial", times: "10:00 AM", meetingID: "654 9931 9358", passcode: "695761" },
+  { number: "1405", function: "Trial", times: "10:00 AM", meetingID: "647 9728 8796", passcode: "459454" },
+  { number: "1406", function: "Trial", times: "10:00 AM", meetingID: "631 3653 1733", passcode: "796659" }
+];
+    
+
+
+    const select = document.getElementById("courtroomSelect");
+    const infoSection = document.getElementById("courtroomInfo");
+    const errorMsg = document.getElementById("errorMsg");
+    const langToggle = document.getElementById("langToggle");
+    let isFrench = false;
+
+    courtrooms.forEach(court => {
+      const option = document.createElement("option");
+      option.value = court.number;
+      option.textContent = `Courtroom ${court.number}`;
+      select.appendChild(option);
+    });
+
+  function toggleLanguage() {
+    isFrench = !isFrench;
+    document.getElementById("instructionText").textContent = isFrench ? "Utilisez les outils de recherche ci-dessous pour trouver les informations Zoom pour un emplacement de la Cour de justice de l'Ontario" : "Use the search tools below to find the zoom information for a location of the Ontario Court of Justice";
+    document.getElementById("findCourtroomTitle").textContent = isFrench ? "Trouvez votre salle d'audience" : "Find Your Courtroom";
+    document.getElementById("submitButton").textContent = isFrench ? "Soumettre" : "Submit";
+    errorMsg.textContent = isFrench ? "Vous devez sélectionner une salle d'audience avant de soumettre!" : "You must select a courtroom before submitting!";
+    langToggle.textContent = isFrench ? "English" : "Français";
+
+    // Change header text as requested
+    document.getElementById("headerTitle").textContent = isFrench ? "Cour de justice de l'Ontario - Toronto" : "Ontario Court of Justice - Toronto";
+    document.getElementById("headerSubtitle").textContent = isFrench ? "Connexion au tribunal" : "Court Connect";
+
+    const options = select.options;
+    for (let i = 0; i < options.length; i++) {
+      if (i === 0) {
+        options[i].textContent = isFrench ? "Sélectionnez une salle d'audience" : "Select a courtroom";
+      } else {
+        options[i].textContent = isFrench ? `Salle d'audience ${options[i].value}` : `Courtroom ${options[i].value}`;
+      }
+    }
+
+    updateCourtroomInfoLanguage();
+  }
+
+    function updateCourtroomInfoLanguage() {
+      const val = select.value;
+      const court = courtrooms.find(c => c.number === val);
+      if (court && !infoSection.classList.contains("hidden")) {
+        infoSection.innerHTML = `
+          <h3 class="text-lg font-semibold mb-2">${isFrench ? "Salle d'audience" : "Courtroom"} ${court.number}</h3>
+          <div class="flex justify-between items-center border p-2 rounded">
+            <p><strong>${isFrench ? "ID de réunion:" : "Meeting ID:"}</strong> ${court.meetingID}</p>
+            <button onclick="copyText('${court.meetingID}')" class="bg-blue-500 text-white px-3 py-1 rounded">${isFrench ? "Copier" : "Copy"}</button>
+          </div>
+          <div class="flex justify-between items-center border p-2 rounded mt-2">
+            <p><strong>${isFrench ? "Code d'accès:" : "Passcode:"}</strong> ${court.passcode}</p>
+            <button onclick="copyText('${court.passcode}')" class="bg-blue-500 text-white px-3 py-1 rounded">${isFrench ? "Copier" : "Copy"}</button>
+          </div>
+        `;
+      }
+    }
+
+    function showCourtroomInfo() {
+      const val = select.value;
+      const court = courtrooms.find(c => c.number === val);
+      if (court) {
+        errorMsg.classList.add("hidden");
+        infoSection.innerHTML = `
+          <h3 class="text-lg font-semibold mb-2">${isFrench ? "Salle d'audience" : "Courtroom"} ${court.number}</h3>
+          <div class="flex justify-between items-center border p-2 rounded">
+            <p><strong>${isFrench ? "ID de réunion:" : "Meeting ID:"}</strong> ${court.meetingID}</p>
+            <button onclick="copyText('${court.meetingID}')" class="bg-blue-500 text-white px-3 py-1 rounded">${isFrench ? "Copier" : "Copy"}</button>
+          </div>
+          <div class="flex justify-between items-center border p-2 rounded mt-2">
+            <p><strong>${isFrench ? "Code d'accès:" : "Passcode:"}</strong> ${court.passcode}</p>
+            <button onclick="copyText('${court.passcode}')" class="bg-blue-500 text-white px-3 py-1 rounded">${isFrench ? "Copier" : "Copy"}</button>
+          </div>
+        `;
+        infoSection.classList.remove("hidden");
+      } else {
+        infoSection.classList.add("hidden");
+        errorMsg.classList.remove("hidden");
+      }
+    }
+
+    function copyText(text) {
+      navigator.clipboard.writeText(text).then(() => alert(isFrench ? "Copié!" : "Copied!"));
+    }
+  </script>
+
+  <style>
+    @media (max-width: 480px) {
+      body { padding: 0.8rem; }
+      h3 { font-size: 1rem; }
+      p, button { font-size: 0.875rem; }
+    }
+
+    @media (min-width: 481px) and (max-width: 640px) {
+      body { padding: 1.2rem; }
+      h3 { font-size: 1.25rem; }
+      p, button { font-size: 1rem; }
+    }
+
+    @media (min-width: 641px) and (max-width: 768px) {
+      body { padding: 1.5rem; }
+      h3 { font-size: 1.5rem; }
+      p, button { font-size: 1.125rem; }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+      body { padding: 2rem; }
+      h3 { font-size: 1.75rem; }
+      p, button { font-size: 1.25rem; }
+    }
+
+    @media (min-width: 1025px) {
+      body { padding: 1.2rem; }
+      h3 { font-size: 2rem; }
+      p, button { font-size: 1rem; }
+    }
+  </style>
+  <!-- AOS init -->
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script>
+    AOS.init();
+  </script>
+
+</body>
+</html>
